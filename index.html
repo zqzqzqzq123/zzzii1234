@@ -1,0 +1,235 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="yes" name="apple-touch-fullscreen">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="320" name="MobileOptimized">
+    <title>官方页面</title>
+    <style>
+        .content {
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            left: 0;
+            top: 0;
+            border: none;
+            display: none; /* 初始隐藏iframe，加载完成后显示 */
+        }
+        /* 新增：三点式加载动画样式 */
+        .dot-loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 8px;
+        }
+        .dot-loading span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e63946;
+            animation: dotBounce 1.2s infinite ease-in-out;
+        }
+        .dot-loading span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .dot-loading span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes dotBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* 以下为原有错误样式，保持不变 */
+        .error-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 0 20px;
+            margin: 0;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .error-card {
+            width: 100%;
+            max-width: 500px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background-color: #fff1f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .error-icon::after {
+            content: "!";
+            color: #e63946;
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .error-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        .error-desc {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+        .contact-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #e63946;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 15px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .contact-btn:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.2);
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @media (max-width: 420px) {
+            .error-card {
+                padding: 30px 20px;
+            }
+            .error-title {
+                font-size: 20px;
+            }
+            .error-desc {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const Utils = {
+            getUrlParam: (key) => {
+                const params = new URLSearchParams(window.location.search);
+                return params.get(key) || '';
+            },
+            isValidUrl: (url) => {
+                try {
+                    new URL(url);
+                    return url.startsWith('http');
+                } catch (e) {
+                    return false;
+                }
+            },
+            isDomainAllowed: (url) => {
+                const allowedDomains = ["jk.xiaop.icu","op.xiaop.icu",];
+                const urlObj = new URL(url);
+                const domain = urlObj.hostname;
+                return allowedDomains.some(allowed => 
+                    domain === allowed || domain.endsWith(`.${allowed}`)
+                );
+            },
+            showError: (message) => {
+                // 错误显示时，先移除加载动画
+                const loadingEl = document.querySelector('.dot-loading');
+                if (loadingEl) loadingEl.remove();
+
+                const errorEl = document.createElement('div');
+                errorEl.className = 'error-message';
+                if (message.includes('不在白名单内')) {
+                    errorEl.innerHTML = `
+                        <div class="error-card">
+                            <div class="error-icon"></div>
+                            <h3 class="error-title">域名未授权</h3>
+                            <p class="error-desc">您的域名不在系统白名单内，无法使用此功能。<br>请联系客服进行域名加白操作小xqq2373848783。</p>
+                            <a href="tencent://message/?uin=2373848783&Site=&Menu=yes" class="contact-btn">联系客服加白</a>
+                        </div>
+                    `;
+                } else {
+                    errorEl.textContent = message;
+                }
+                document.body.appendChild(errorEl);
+            }
+        };
+        (() => {
+            try {
+                const encodedParam = Utils.getUrlParam('xx');
+                if (!encodedParam) {
+                    Utils.showError('大哥你链接呢，请检查链接');
+                    return;
+                }
+                let trueurl;
+                try {
+                    trueurl = atob(encodedParam);
+                } catch (e) {
+                    Utils.showError('参数解码失败，无效的参数格式');
+                    return;
+                }
+                if (!Utils.isValidUrl(trueurl)) {
+                    Utils.showError('无效的URL格式，请确保包含http/https协议');
+                    return;
+                }
+                if (!Utils.isDomainAllowed(trueurl)) {
+                    Utils.showError('您的域名不在白名单内无法使用，请联系客服加白');
+                    return;
+                }
+
+                // 1. 创建并添加三点式加载动画
+                const loadingEl = document.createElement('div');
+                loadingEl.className = 'dot-loading';
+                loadingEl.innerHTML = '<span></span><span></span><span></span>';
+                document.body.appendChild(loadingEl);
+
+                // 2. 创建iframe（初始隐藏）
+                const iframe = document.createElement('iframe');
+                iframe.className = 'content';
+                iframe.src = trueurl;
+                iframe.title = '加载内容';
+                document.body.appendChild(iframe);
+
+                // 3. 加载完成后：移除加载动画，显示iframe
+                iframe.onload = () => {
+                    loadingEl.remove(); // 移除三点加载
+                    iframe.style.display = 'block'; // 显示内容
+                };
+            } catch (e) {
+                // 异常时移除加载动画，显示错误
+                const loadingEl = document.querySelector('.dot-loading');
+                if (loadingEl) loadingEl.remove();
+                Utils.showError(`加载失败：${e.message}`);
+                console.error('主逻辑错误：', e);
+            }
+        })();
+    </script>
+</body>
+</html>
