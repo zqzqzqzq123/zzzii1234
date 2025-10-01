@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport">
+  <title>官方页面</title>
+  <style>
+    html, body {
+      margin: 0; 
+      padding: 0; 
+      width: 100%; 
+      height: 100%; 
+      overflow: hidden; 
+      font-family: Arial, sans-serif;
+    }
+    .content { 
+      position: fixed; 
+      width: 100%; 
+      height: 100%; 
+      left: 0; 
+      top: 0; 
+      border: none; 
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .error-tip { 
+      font-size: 24px; 
+      color: red; 
+      text-align: center; 
+      line-height: 100vh; 
+      display: none; 
+      padding: 0 20px; 
+    }
+    .loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: #3498db;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    .loading-text {
+      color: #333;
+      font-size: 18px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 加载动画 -->
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <div class="loading-text">加载中，请稍候...</div>
+  </div>
+
+  <script>
+    // 显示加载动画
+    document.getElementById('loader').style.display = 'flex';
+    
+    // 解析URL参数
+    var urlParams = new URLSearchParams(window.location.search); 
+    var encodedParam = urlParams.get('xx'); 
+    var tureurl = encodedParam ? atob(encodedParam) : ''; 
+    
+    if (tureurl && tureurl.includes("http")) {
+      // 创建iframe
+      var iframe = document.createElement('iframe');
+      iframe.className = 'content';
+      iframe.src = tureurl;
+      iframe.onload = function() {
+        // 加载完成后淡入iframe并淡出加载动画
+        iframe.style.opacity = '1';
+        var loader = document.getElementById('loader');
+        loader.style.opacity = '0';
+        setTimeout(function() {
+          loader.style.display = 'none';
+        }, 500);
+        
+        // 绑定鼠标滚轮事件
+        bindMouseWhee(iframe);
+      };
+      document.body.appendChild(iframe); 
+      console.log(tureurl);
+    } else { 
+      // 没有有效URL时显示错误信息
+      console.log("nourls"); 
+      document.getElementById('loader').innerHTML = 
+        '<div class="error-tip">无效的URL参数</div>';
+    }
+    
+    // 鼠标滚轮处理函数
+    var firefox = navigator.userAgent.indexOf('Firefox') != -1; 
+    function MouseWheel(e, doc) { 
+      e.preventDefault && e.preventDefault(), e.returnValue = false; 
+      var up = firefox && e.detail < 0 || e.wheelDelta > 0; 
+      doc.body.scrollTop = doc.documentElement.scrollTop += up ? -50 : 50; 
+    }
+    
+    function bindMouseWhee(ifr) {
+      try { 
+        var doc = ifr.contentWindow.document; 
+        firefox ? doc.addEventListener('DOMMouseScroll', function (e) { MouseWheel(e, doc) }, false) : 
+                 (doc.onmousewheel = function (e) { MouseWheel(e || ifr.contentWindow.event, doc) }); 
+      } catch (e) { 
+        console.error('Error' + e); 
+      }
+    }
+  </script>
+</body>
+</html>
